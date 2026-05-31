@@ -118,14 +118,8 @@ class VoucherController extends Controller
 
     public function all_recepit_vochers()
     {
-        // V2: Fetch Receipt AND Journal Vouchers (to show Sales Invoices + Receipts, excluding Purchase Invoices)
-        $receipts = \App\Models\VoucherMaster::where(function($query) {
-            $query->where('voucher_type', \App\Models\VoucherMaster::TYPE_RECEIPT)
-                  ->orWhere(function($q) {
-                      $q->where('voucher_type', \App\Models\VoucherMaster::TYPE_JOURNAL)
-                        ->where('party_type', '!=', \App\Models\Vendor::class);
-                  });
-        })
+        // V2: Fetch Receipt Vouchers only
+        $receipts = \App\Models\VoucherMaster::where('voucher_type', \App\Models\VoucherMaster::TYPE_RECEIPT)
             ->with('party') // Eager load the polymorphic party
             ->orderBy('id', 'DESC')
             ->get();
@@ -703,14 +697,8 @@ class VoucherController extends Controller
 
     public function all_Payment_vochers()
     {
-        // V2: Fetch from VoucherMaster where type is PAYMENT, or Journal Vouchers for Vendors (Purchase Invoices)
-        $receipts = \App\Models\VoucherMaster::where(function($query) {
-            $query->where('voucher_type', \App\Models\VoucherMaster::TYPE_PAYMENT)
-                  ->orWhere(function($q) {
-                      $q->where('voucher_type', \App\Models\VoucherMaster::TYPE_JOURNAL)
-                        ->where('party_type', \App\Models\Vendor::class);
-                  });
-        })
+        // V2: Fetch Payment Vouchers only
+        $receipts = \App\Models\VoucherMaster::where('voucher_type', \App\Models\VoucherMaster::TYPE_PAYMENT)
             ->with('party') // Eager load the polymorphic party
             ->orderBy('id', 'DESC')
             ->get();

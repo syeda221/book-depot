@@ -176,8 +176,11 @@ class SaleReturnController extends Controller
                     ->first();
 
                 if ($stock) {
-                    // Robust calculation
-                    $currentTotalPieces = $stock->quantity * $ppb;
+                    // Use total_pieces as primary source of truth to avoid losing loose pieces, fallback only if zero
+                    $currentTotalPieces = $stock->total_pieces;
+                    if ($currentTotalPieces == 0 && $stock->quantity > 0) {
+                        $currentTotalPieces = $stock->quantity * $ppb;
+                    }
                     $newTotalPieces = $currentTotalPieces + $qty;
                     
                     $stock->total_pieces = $newTotalPieces;

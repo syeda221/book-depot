@@ -1228,9 +1228,11 @@ class PurchaseController extends Controller
                     $product = Product::find($productId); // Ensure fresher product data
                     $ppbVal = $product->pieces_per_box > 0 ? $product->pieces_per_box : 1;
                     
-                    // Robust Calculation: Derive current total pieces from quantity (Boxes) * PPB
-                    // This handles cases where 'total_pieces' column might be out of sync or stored as boxes historically.
-                    $currentTotalPieces = $stock->quantity * $ppbVal; 
+                    // Use total_pieces as primary source of truth to avoid losing loose pieces, fallback only if zero
+                    $currentTotalPieces = $stock->total_pieces;
+                    if ($currentTotalPieces == 0 && $stock->quantity > 0) {
+                        $currentTotalPieces = $stock->quantity * $ppbVal;
+                    }
                     
                     // Subtract Return Qty (Pieces)
                     $newTotalPieces = max(0, $currentTotalPieces - $qty);

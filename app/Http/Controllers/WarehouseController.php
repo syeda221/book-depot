@@ -29,17 +29,11 @@ class WarehouseController extends Controller
             if ($ws) {
                 $ppb = ($ws->product && $ws->product->pieces_per_box > 0) ? $ws->product->pieces_per_box : 1;
                 
-                // Robust Calculation: 
-                // Trust 'quantity' (Boxes) as the primary source if it exists, as users usually trade in boxes.
-                // Recalculate pieces from quantity to ensure consistency.
-                $calcPieces = $ws->quantity * $ppb;
-                
-                // Use calculated pieces if it differs significantly from stored total_pieces (e.g. data sync issue)
-                // or if total_pieces is 0 but quantity > 0.
-                if (abs($calcPieces - $ws->total_pieces) > 0.1) {
-                     $stockVal = $calcPieces;
-                } else {
+                // Trust total_pieces as the absolute source of truth, fallback to quantity * ppb only if total_pieces is 0
+                if ($ws->total_pieces != 0) {
                      $stockVal = $ws->total_pieces;
+                } else {
+                     $stockVal = $ws->quantity * $ppb;
                 }
             }
 
