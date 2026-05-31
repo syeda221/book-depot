@@ -133,11 +133,23 @@ class SaleReturnController extends Controller
 
                 $price = (float) $request->price[$idx];
                 $itemDisc = (float) ($request->item_discount[$idx] ?? 0);
-                $lineTotal = ($qty * $price) - $itemDisc;
-
-                // Get product for PPB calculation
+                // Get product for PPB and size_mode calculation
                 $product = Product::find($productId);
                 $ppb = $product->pieces_per_box > 0 ? $product->pieces_per_box : 1;
+                $sizeMode = $product->size_mode ?? 'by_pieces';
+                $ppm2 = $product->m2_of_box ?? 0;
+
+                // Calculate Line Total Logic based on size mode
+                if ($sizeMode === 'by_size') {
+                    $lineTotal = round($ppm2 * $qty * $price, 2);
+                } elseif ($sizeMode === 'by_cartons' || $sizeMode === 'by_carton') {
+                    // Price is per piece, qty is total pieces
+                    $lineTotal = $qty * $price;
+                } else {
+                    $lineTotal = $qty * $price;
+                }
+                
+                $lineTotal -= $itemDisc;
 
                 // Calculate boxes and loose pieces
                 $boxes = floor($qty / $ppb);
@@ -208,40 +220,40 @@ class SaleReturnController extends Controller
             // Handle Refund Payment (Payment Voucher)
             $totalPaid = 0;
             if (!empty($request->payment_account_id)) {
+                $voucherService = app(\App\Services\VoucherService::class);
+                $arId = app(\App\Services\BalanceService::class)->getAccountsReceivableId();
+
                 foreach ($request->payment_account_id as $idx => $accId) {
                     $amt = (float) ($request->payment_amount[$idx] ?? 0);
                     if ($accId && $amt > 0) {
                         $totalPaid += $amt;
                         
-                        // Create Payment Voucher (Cash Out to Customer)
-                        $pv = \App\Models\VoucherMaster::create([
+                        // Create Payment Voucher via Service
+                        $voucherData = [
                             'voucher_type' => \App\Models\VoucherMaster::TYPE_PAYMENT,
                             'date' => $validated['return_date'],
-                            'status' => 'posted',
+                            'status' => \App\Models\VoucherMaster::STATUS_POSTED,
                             'party_type' => \App\Models\Customer::class,
                             'party_id' => $validated['customer_id'],
-                            'total_amount' => $amt,
                             'remarks' => "Refund for Return #{$nextInvoice}",
-                        ]);
-                        
-                        // Cr Cash (Money Out)
-                        \App\Models\VoucherDetail::create([
-                            'voucher_master_id' => $pv->id,
-                            'account_id' => $accId, 
-                            'debit' => 0,
-                            'credit' => $amt,
-                            'narration' => 'Cash Refund Paid'
-                        ]);
-                        
-                        // Dr Accounts Receivable (Customer debt increases back)
-                        $arId = app(\App\Services\BalanceService::class)->getAccountsReceivableId();
-                        \App\Models\VoucherDetail::create([
-                            'voucher_master_id' => $pv->id,
-                            'account_id' => $arId, 
-                            'debit' => $amt,
-                            'credit' => 0,
-                            'narration' => 'Refund to Customer'
-                        ]);
+                        ];
+
+                        $lines = [
+                            [
+                                'account_id' => $accId, 
+                                'debit' => 0,
+                                'credit' => $amt,
+                                'narration' => 'Cash Refund Paid'
+                            ],
+                            [
+                                'account_id' => $arId, 
+                                'debit' => $amt,
+                                'credit' => 0,
+                                'narration' => 'Refund to Customer'
+                            ]
+                        ];
+
+                        $voucherService->createVoucher($voucherData, $lines, auth()->id());
                     }
                 }
             }

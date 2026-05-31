@@ -610,17 +610,11 @@
                 if (sizeMode === 'by_size') {
                     // Price is per M2. Total M2 = Qty * PPM2 (Wait, check logic)
                     // usually pieces_per_m2 is M2 per Piece?
-                    // Let's check logic: Gross = TotalPieces * m2_per_piece * price_per_m2
-                    // Controller says: $lineTotal = round($ppm2 * $qty * $price, 2);
-                    // note: in controller $ppm2 variable name is $ppm2 but it comes from pieces_per_m2 column.
-                    // Usually if it is "Pieces Per M2", then M2 = pieces / PPM2.
-                    // BUT if the math in controller is `PPM2 * Qty`, then that variable is actually "M2 Per Piece".
-                    // Let's assume controller logic is Source of Truth: $ppm2 * $qty * $price.
+                    // Price is per M2. Total M2 = Qty * PPM2
                     total = qty * ppm2 * price;
                 } else if (sizeMode === 'by_cartons' || sizeMode === 'by_carton') {
-                    // Price is Per Box.
-                    // Total = (Qty / PPB) * Price
-                    total = (qty / ppb) * price;
+                    // Price is Per Piece, qty is Total Pieces
+                    total = qty * price;
                 } else {
                     // Price is Per Piece
                     total = qty * price;

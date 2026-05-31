@@ -1191,16 +1191,17 @@ class PurchaseController extends Controller
                 $product = Product::find($productId);
                 $ppb = $origItem ? ($origItem->pieces_per_box ?? 1) : ($product->pieces_per_box ?? 1);
                 $sizeMode = $origItem ? ($origItem->size_mode ?? 'by_pieces') : ($product->size_mode ?? 'by_pieces');
-                $ppm2 = $origItem ? ($origItem->pieces_per_m2 ?? 0) : ($product->pieces_per_m2 ?? 0);
+                
+                // Fallback to m2_of_box if pieces_per_m2 is 0 or missing in old data
+                $ppm2 = $origItem && $origItem->pieces_per_m2 > 0 ? $origItem->pieces_per_m2 : ($product->m2_of_box ?? 0);
 
                 // Calculate Line Total Logic (Same as Purchase Store)
                 if ($sizeMode === 'by_size') {
                     // price is per m2. Gross = TotalPieces * m2_per_piece * price_per_m2
                     $lineTotal = round($ppm2 * $qty * $price, 2);
                 } elseif ($sizeMode === 'by_cartons' || $sizeMode === 'by_carton') {
-                    // Price is per carton.
-                    $ppbVal = $ppb > 0 ? $ppb : 1;
-                    $lineTotal = round($qty * ($price / $ppbVal), 2);
+                    // Price is per piece, qty is total pieces
+                    $lineTotal = $qty * $price;
                 } else {
                     $lineTotal = $qty * $price;
                 }
@@ -1277,68 +1278,40 @@ class PurchaseController extends Controller
             // 4. Handle Refund Payment
             $totalPaid = 0;
             if (! empty($request->payment_account_id)) {
-                $transactionService = app(\App\Services\TransactionService::class);
-                // We create a RECEIPT Voucher for the refund received
-                // Currently doing it manually or via Service if supported?
-                // For simplicity, we create Receipt Voucher via loop below or Service if exists.
-                // Service createReceiptVoucher takes Customer, so we might need Vendor support or use Journal.
-                
-                // Let's just update the return record 'paid' amount and handle Ledger manually for simplicity OR call service if adapted.
-                // The User asked for "apply it everything... create journal entries".
-                // If refund is received, it's Cash DEBIT, Vendor CREDIT (Wait.. Refund means Cash In).
-                // Yes: Dr Cash, Cr Vendor (to offset the Return Debit Note).
-                
-                // Let's stick to simple ledger updates for Refund part unless we upgrade Service for Vendor Receipts.
-                // The requested flow: Return -> Reduces Payable. Refund -> Increases Payable (since they paid us back).
-                
+                $voucherService = app(\App\Services\VoucherService::class);
+                $apId = app(\App\Services\BalanceService::class)->getAccountsPayableId();
+
                 foreach ($request->payment_account_id as $idx => $accId) {
                     $amt = (float) ($request->payment_amount[$idx] ?? 0);
                     if ($accId && $amt > 0) {
                         $totalPaid += $amt;
                         
-                         // Create Receipt Voucher (Cash In)
-                         // We can use a simple wrapper or manual insert if TransactionService specific for Customers.
-                         // Let's use TransactionService->createReceiptFromSale logic but adapted for Vendor Refund? 
-                         // No, let's create a specific Receipt Voucher here for accuracy.
-                         // Dr Cash, Cr Vendor.
-                         
-                        $rv = \App\Models\VoucherMaster::create([
+                        // Create Receipt Voucher via Service (Cash In)
+                        $voucherData = [
                             'voucher_type' => \App\Models\VoucherMaster::TYPE_RECEIPT,
                             'date' => $validated['return_date'],
-                            'status' => 'posted',
+                            'status' => \App\Models\VoucherMaster::STATUS_POSTED,
                             'party_type' => \App\Models\Vendor::class,
                             'party_id' => $validated['vendor_id'],
-                            'total_amount' => $amt,
                             'remarks' => "Refund for Return #{$nextInvoice}",
-                        ]);
+                        ];
+
+                        $lines = [
+                            [
+                                'account_id' => $accId, 
+                                'debit' => $amt,
+                                'credit' => 0,
+                                'narration' => 'Cash Refund Received'
+                            ],
+                            [
+                                'account_id' => $apId,
+                                'debit' => 0,
+                                'credit' => $amt,
+                                'narration' => 'Refund from Vendor'
+                            ]
+                        ];
                         
-                        // Dr Cash
-                        \App\Models\VoucherDetail::create([
-                             'voucher_master_id' => $rv->id,
-                             'account_id' => $accId, 
-                             'debit' => $amt,
-                             'credit' => 0,
-                             'narration' => 'Cash Refund Received'
-                        ]);
-                        
-                        // Cr Vendor (Accounts Payable - Reducing the Debit Note effect on Ledger, or just Record money in)
-                        // Actually, Refund means Vendor gave money. 
-                        // Accounts Payable is Liability (Credit). Debit reduces Liability.
-                        // Return (Debit Note) = Debit AP.
-                        // Refund = Cash Debit, Credit AP (Liability goes back up because they paid us? No.)
-                        // Refund clears the "Debit Balance" we created on Vendor. 
-                        // If we returned goods, Vendor owes us. (Debit Balance).
-                        // They pay us cash. Cash Debit. Vendor Credit (Receivable decreases).
-                        // So yes, Credit Vendor Account.
-                        
-                         $apId = app(\App\Services\BalanceService::class)->getAccountsPayableId();
-                         \App\Models\VoucherDetail::create([
-                             'voucher_master_id' => $rv->id,
-                             'account_id' => $apId, 
-                             'debit' => 0,
-                             'credit' => $amt,
-                             'narration' => 'Refund from Vendor'
-                        ]);
+                        $voucherService->createVoucher($voucherData, $lines, auth()->id());
                     }
                 }
             }
