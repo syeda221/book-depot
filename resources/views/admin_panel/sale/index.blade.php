@@ -49,7 +49,13 @@
                                 // Status
                                 $status = '<span class="badge bg-secondary">Draft</span>';
                                 if ($sale->sale_status === 'posted') {
-                                    $status = '<span class="badge bg-primary">Posted</span>';
+                                    if ($sale->is_booking) {
+                                        $status = '<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Confirmed Booking</span>';
+                                    } else {
+                                        $status = '<span class="badge bg-primary">Posted</span>';
+                                    }
+                                } elseif ($sale->sale_status === 'booked') {
+                                    $status = '<span class="badge bg-warning text-dark"><i class="fas fa-bookmark me-1"></i>Booked</span>';
                                 } elseif ($sale->sale_status === 'returned') {
                                     $status = '<span class="badge bg-danger">Returned</span>';
                                 } elseif ($sale->sale_status == 1) {
@@ -78,9 +84,13 @@
                                 <td>
                                     <div class="btn-group" role="group">
                                         @if ($sale->sale_status === 'draft' || $sale->sale_status === 'booked')
-                                            {{-- Draft: Edit/Confirm + Invoice --}}
+                                            {{-- Draft / Booked: Confirm (Form POST) + Edit + Invoice --}}
+                                            <form action="{{ route('sales.confirm', $sale->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to confirm this booking and convert it to a sale?')">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-success text-white"><i class="fas fa-check me-1"></i>Confirm</button>
+                                            </form>
                                             <a href="{{ route('sales.edit', $sale->id) }}"
-                                                class="btn btn-sm btn-warning">Confirm</a>
+                                                class="btn btn-sm btn-warning text-dark">Edit</a>
                                             <a href="{{ route('sales.invoice', $sale->id) }}" target="_blank"
                                                 class="btn btn-sm btn-info text-white">Invoice</a>
                                             <a href="{{ route('sales.invoice', ['id' => $sale->id, 'type' => 'estimate']) }}" target="_blank"

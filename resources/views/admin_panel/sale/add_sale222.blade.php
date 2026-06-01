@@ -916,6 +916,15 @@ $(document).ready(function() {
             updateGrandTotals();
             refreshPostedState();
 
+            // --- Check if URL is for Booking Flow ---
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('type') === 'booking') {
+                $('.header-text').html('<i class="fas fa-bookmark text-primary me-2"></i>Add Booking');
+                $('#action').val('booking');
+                $('#btnPosted').addClass('d-none');
+                $('#btnHeaderPosted').addClass('d-none');
+            }
+
             // ============================================================
             // CUSTOMER SELECT2 AJAX SEARCH (Name or Code)
             // ============================================================

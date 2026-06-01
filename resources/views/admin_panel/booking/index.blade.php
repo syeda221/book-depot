@@ -6,7 +6,9 @@
                 <h5 class="mb-0">BOOKINGS</h5>
                 <span class="fw-bold text-dark">
                     @can('bookings.create')
-                        <a href="{{ route('bookings.create') }}" class="btn btn-primary">Add Booking</a>
+                        <a href="{{ route('sale.add') }}?type=booking" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>Add Booking
+                        </a>
                     @endcan
                 </span>
             </div>
@@ -23,6 +25,7 @@
                             <th>Price</th>
                             <th>Discount</th>
                             <th>Total</th>
+                            <th>Status</th>
                             <th>Booking Date</th>
                             <th>Action</th>
                         </tr>
@@ -31,11 +34,11 @@
                         @foreach ($bookings as $booking)
                             <tr>
                                 <td>{{ $booking->id }}</td>
-                                <td>{{ $booking->customer_relation->customer_name ?? 'N/A' }}</td>
+                                <td>{{ optional($booking->customer_relation)->customer_name ?? 'N/A' }}</td>
                                 <td>{{ $booking->reference }}</td>
                                 <td>
                                     @foreach ($booking->items as $item)
-                                        {{ $item->product->item_name ?? 'N/A' }} <br>
+                                        {{ optional($item->product)->item_name ?? 'N/A' }} <br>
                                     @endforeach
                                 </td>
                                 <td>
@@ -45,7 +48,7 @@
                                 </td>
                                 <td>
                                     @foreach ($booking->items as $item)
-                                        {{ $item->price }} <br>
+                                        {{ number_format($item->price, 2) }} <br>
                                     @endforeach
                                 </td>
                                 <td>
@@ -54,13 +57,33 @@
                                     @endforeach
                                 </td>
                                 <td>{{ number_format($booking->total_net, 2) }}</td>
+                                <td>
+                                    @if ($booking->sale_status === 'booked')
+                                        <span class="badge bg-warning text-dark"><i class="fas fa-bookmark me-1"></i>Booked</span>
+                                    @elseif ($booking->sale_status === 'posted')
+                                        <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Confirmed</span>
+                                    @else
+                                        <span class="badge bg-secondary">{{ ucfirst($booking->sale_status) }}</span>
+                                    @endif
+                                </td>
                                 <td>{{ $booking->created_at->format('d-m-Y') }}</td>
                                 <td>
-                                    @can('bookings.view')
-                                        <a href="{{ route('sales.dc', $booking->id) }}" target="_blank"
-                                            class="btn btn-sm btn-outline-secondary">DC Receipt</a>
-                                    @endcan
-
+                                    <div class="btn-group" role="group">
+                                        @if ($booking->sale_status === 'booked')
+                                            {{-- Pending Booking: One-click Confirm + Edit --}}
+                                            <form action="{{ route('sales.confirm', $booking->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to confirm this booking and convert it to a sale?')">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-success text-white"><i class="fas fa-check me-1"></i>Confirm</button>
+                                            </form>
+                                            <a href="{{ route('sales.edit', $booking->id) }}" class="btn btn-sm btn-warning text-dark">Edit</a>
+                                            <a href="{{ route('sales.invoice', $booking->id) }}" target="_blank" class="btn btn-sm btn-info text-white">Invoice</a>
+                                        @else
+                                            {{-- Confirmed Booking: DC, Invoice, Receipt --}}
+                                            <a href="{{ route('sales.invoice', $booking->id) }}" target="_blank" class="btn btn-sm btn-info text-white">Invoice</a>
+                                            <a href="{{ route('sales.dc', $booking->id) }}" target="_blank" class="btn btn-sm btn-outline-secondary">DC Receipt</a>
+                                            <a href="{{ route('sales.receipt', $booking->id) }}" target="_blank" class="btn btn-sm btn-success text-white">Receipt</a>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach

@@ -984,6 +984,13 @@ class SaleController extends Controller
             $total_bill = 0;
             $total_items = 0;
 
+            // Determine if this is a booking transaction
+            if ($request->action === 'booking' || ($sale->exists && $sale->is_booking)) {
+                $sale->is_booking = 1;
+            } else {
+                $sale->is_booking = 0;
+            }
+
             $sale->save(); // Save first to get ID
 
             // 3. Process Items
@@ -1417,6 +1424,55 @@ class SaleController extends Controller
                 $cust->previous_balance -= $totalNetImpact;
                 $cust->save();
             }
+        }
+    }
+
+    public function confirmBooking($id)
+    {
+        $sale = Sale::findOrFail($id);
+
+        if ($sale->sale_status !== 'booked') {
+            return redirect()->back()->with('error', 'Only booked sales can be confirmed.');
+        }
+
+        DB::beginTransaction();
+        try {
+            // Update status to posted (which is the system-wide confirmed status)
+            $sale->sale_status = 'posted';
+            $sale->save();
+
+            // 1. DEDUCT STOCK FROM WAREHOUSE
+            $this->handleStockImpact($sale, 'out');
+
+            // 2. LEGACY LEDGER: Post Invoice First (Increases Balance)
+            $this->updateLedger($sale);
+
+            // 3. PROFESSIONAL LEDGER POSTING (ENTRY 1: THE INVOICE)
+            $journalService = app(\App\Services\JournalEntryService::class);
+            $balanceService = app(\App\Services\BalanceService::class);
+
+            $custForVoucher = $sale->customer_relation ?? \App\Models\Customer::find($sale->customer_id);
+
+            if ($custForVoucher) {
+                $balanceService->createSaleVoucher(
+                    $custForVoucher,
+                    $sale->total_net,
+                    $sale->invoice_no,
+                    $sale->created_at->format('Y-m-d')
+                );
+            }
+
+            // 4. AUTO RECEIPT (ENTRY 2: THE PAYMENT)
+            $transactionService = app(\App\Services\TransactionService::class);
+            $transactionService->createReceiptFromSale($sale);
+
+            DB::commit();
+
+            return redirect()->back()->with('success', 'Booking confirmed and converted to sale successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Booking Confirmation Error: '.$e->getMessage());
+            return redirect()->back()->with('error', 'Failed to confirm booking: '.$e->getMessage());
         }
     }
 }

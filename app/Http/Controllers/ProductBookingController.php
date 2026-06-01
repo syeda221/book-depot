@@ -14,10 +14,8 @@ class ProductBookingController extends Controller
     public function index()
     {
         // User Request: "getting only posted sale information"
-        // We fetch Sales where status is 'posted'.
-        // We eager load 'items' and 'items.product' to display details in the view.
         $bookings = Sale::with(['customer_relation', 'items.product'])
-            ->where('sale_status', 'posted') // Show ONLY posted sales
+            ->where('is_booking', 1) // Show ONLY bookings (both pending and confirmed)
             ->latest()
             ->get();
 
