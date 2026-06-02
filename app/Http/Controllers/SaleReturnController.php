@@ -143,7 +143,7 @@ class SaleReturnController extends Controller
                 if ($sizeMode === 'by_size') {
                     $lineTotal = round($ppm2 * $qty * $price, 2);
                 } elseif ($sizeMode === 'by_cartons' || $sizeMode === 'by_carton') {
-                    $lineTotal = round($qty * ($price / $ppb), 2);
+                    $lineTotal = $qty * $price;
                 } else {
                     $lineTotal = $qty * $price;
                 }

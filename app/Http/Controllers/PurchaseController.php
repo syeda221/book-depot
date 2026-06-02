@@ -1250,7 +1250,7 @@ class PurchaseController extends Controller
                     // price is per m2. Gross = TotalPieces * m2_per_piece * price_per_m2
                     $lineTotal = round($ppm2 * $qty * $price, 2);
                 } elseif ($sizeMode === 'by_cartons' || $sizeMode === 'by_carton') {
-                    $lineTotal = round($qty * ($price / $ppb), 2);
+                    $lineTotal = $qty * $price;
                 } else {
                     $lineTotal = $qty * $price;
                 }
