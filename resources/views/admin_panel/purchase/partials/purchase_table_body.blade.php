@@ -34,12 +34,40 @@
             {{ $purchase->warehouse->warehouse_name ?? 'N/A' }}
         </td>
 
+        <td class="text-end text-dark">
+            @php
+                $inline_val = $purchase->items->sum('item_discount');
+                $gross_subtotal = $purchase->subtotal + $inline_val;
+                $inline_pct = $gross_subtotal > 0 ? ($inline_val / $gross_subtotal) * 100 : 0;
+            @endphp
+            Rs. {{ number_format($inline_val, 2) }}
+            @if ($inline_val > 0)
+                <div class="text-muted small mt-1" style="font-size: 10px;">({{ number_format($inline_pct, 1) }}%)</div>
+            @endif
+        </td>
+
+        <td class="text-end text-dark">
+            @if ($purchase->additional_discount > 0)
+                @php
+                    $add_val = $purchase->additional_discount;
+                    $original_net = $purchase->net_amount + $add_val;
+                    $add_pct = $original_net > 0 ? ($add_val / $original_net) * 100 : 0;
+                @endphp
+                <span class="badge rounded-pill border px-2 py-1" style="background-color: #fff8e1; color: #b78103; border-color: #ffe082 !important; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                    <i class="fas fa-tag" style="font-size: 10px;"></i> Rs. {{ number_format($add_val, 2) }}
+                </span>
+                <div class="text-muted small mt-1" style="font-size: 10px;">({{ number_format($add_pct, 1) }}%)</div>
+            @else
+                <span class="text-muted">Rs. 0.00</span>
+            @endif
+        </td>
+
         <td class="text-end fw-bold text-dark">
             @if ($purchase->total_returned > 0)
                 {{-- Show original amount struck through --}}
                 <div>
                     <small
-                        class="text-muted text-decoration-line-through">Rs. {{ number_format($purchase->net_amount + $purchase->additional_discount, 2) }}</small>
+                        class="text-muted text-decoration-line-through">Rs. {{ number_format($purchase->net_amount, 2) }}</small>
                 </div>
                 {{-- Show updated amount --}}
                 <div class="text-success">
@@ -48,15 +76,7 @@
                 <small
                     class="text-danger">(-{{ number_format($purchase->total_returned, 2) }})</small>
             @else
-                Rs. {{ number_format($purchase->net_amount + $purchase->additional_discount, 2) }}
-            @endif
-
-            @if ($purchase->additional_discount > 0)
-                <div class="mt-1">
-                    <span class="badge rounded-pill border px-2 py-1" style="background-color: #fff8e1; color: #b78103; border-color: #ffe082 !important; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
-                        <i class="fas fa-tag" style="font-size: 10px;"></i> -Rs. {{ number_format($purchase->additional_discount, 2) }}
-                    </span>
-                </div>
+                Rs. {{ number_format($purchase->net_amount, 2) }}
             @endif
         </td>
         <td class="text-end text-success">

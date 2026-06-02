@@ -334,6 +334,8 @@
                                         <th class="py-3 text-secondary fw-semibold text-uppercase small">Status</th>
                                         <th class="py-3 text-secondary fw-semibold text-uppercase small">Vendor</th>
                                         <th class="py-3 text-secondary fw-semibold text-uppercase small">Warehouse</th>
+                                        <th class="py-3 text-secondary fw-semibold text-uppercase small text-end">Inline Disc</th>
+                                        <th class="py-3 text-secondary fw-semibold text-uppercase small text-end">Add. Disc</th>
                                         <th class="py-3 text-secondary fw-semibold text-uppercase small text-end">Net Amount</th>
                                         <th class="py-3 text-secondary fw-semibold text-uppercase small text-end">Paid</th>
                                         <th class="py-3 text-secondary fw-semibold text-uppercase small text-end">Due</th>
