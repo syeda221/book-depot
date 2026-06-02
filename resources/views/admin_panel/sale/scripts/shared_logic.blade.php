@@ -406,6 +406,51 @@
         $('#discountAmount').val(orderDisc.toFixed(2));
         $('#totalBalance').val(currentInvoiceTotal.toFixed(2));
         $('input[name="cash"]').val(receipts.toFixed(2));
+
+        // Update Premium Horizontal Card Values
+        // 1. Customer Name
+        let customerName = "Select Customer";
+        const customerVal = $('#customerSelect').val();
+        if (customerVal) {
+            const customerData = $('#customerSelect').select2 ? $('#customerSelect').select2('data') : null;
+            if (customerData && customerData.length > 0 && customerData[0].customer) {
+                customerName = customerData[0].customer.customer_name;
+            } else {
+                const text = $('#customerSelect').find(':selected').text() || '';
+                const parts = text.split(' — ');
+                customerName = parts.length > 1 ? parts[1] : (text || "Select Customer");
+            }
+        }
+        $('#cc_customer_name').text(customerName);
+
+        // 2. Previous Balance
+        const prevAbs = Math.abs(prev);
+        const prevSuffix = prev >= 0 ? 'Dr' : 'Cr';
+        $('#cc_prev_bal_val').text('Rs ' + prevAbs.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 2}));
+        $('#cc_prev_bal_suffix').text(prevSuffix);
+        if (prev >= 0) {
+            $('#cc_prev_bal_val, #cc_prev_bal_suffix').removeClass('text-success').addClass('text-danger');
+        } else {
+            $('#cc_prev_bal_val, #cc_prev_bal_suffix').removeClass('text-danger').addClass('text-success');
+        }
+
+        // 3. Current Bill
+        $('#cc_current_bill').text('Rs ' + currentInvoiceTotal.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 2}));
+
+        // 4. Paid Now
+        $('#cc_paid_now').text('Rs ' + receipts.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 2}));
+
+        // 5. Closing Balance
+        const actualClosingBal = currentInvoiceTotal + prev - receipts;
+        const closingAbs = Math.abs(actualClosingBal);
+        const closingSuffix = actualClosingBal >= 0 ? 'Dr' : 'Cr';
+        $('#cc_closing_bal_val').text('Rs ' + closingAbs.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 2}));
+        $('#cc_closing_bal_suffix').text(closingSuffix);
+        if (actualClosingBal >= 0) {
+            $('#cc_closing_bal_val, #cc_closing_bal_suffix').removeClass('text-success').addClass('text-danger');
+        } else {
+            $('#cc_closing_bal_val, #cc_closing_bal_suffix').removeClass('text-danger').addClass('text-success');
+        }
     }
 
 

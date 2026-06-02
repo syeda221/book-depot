@@ -132,6 +132,116 @@
         }
     </style>
     <style>
+        /* Premium Customer Card CSS - Refactored 2-row layout */
+        .customer-card-premium {
+            background-color: #111827 !important;
+            border-radius: 10px !important;
+            padding: 12px 16px !important;
+            color: #f3f4f6 !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            width: 100% !important;
+        }
+
+        .customer-card-premium .col-title {
+            font-size: 0.65rem !important;
+            text-transform: uppercase !important;
+            font-weight: 700 !important;
+            color: #9ca3af !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            margin-bottom: 2px !important;
+        }
+
+        .customer-card-premium .col-title i {
+            margin-right: 2px !important;
+        }
+
+        .customer-card-premium .col-value {
+            font-size: 0.88rem !important;
+            font-weight: 700 !important;
+            line-height: 1.2 !important;
+        }
+
+        .customer-card-premium .col-value-sub {
+            font-size: 0.7rem !important;
+            font-weight: 700 !important;
+            margin-top: -2px !important;
+        }
+
+        /* Sleek Segmented Control for Radio Buttons */
+        .toggle-button-group {
+            background-color: #f1f5f9;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 2px;
+            display: flex;
+            height: 38px;
+            align-items: center;
+        }
+        .toggle-button-group .btn-check {
+            display: none;
+        }
+        .toggle-button-group .toggle-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #475569;
+            height: 100%;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .toggle-button-group .toggle-btn:hover {
+            color: #1e293b;
+            background-color: #e2e8f0;
+        }
+        .toggle-button-group .btn-check:checked + .toggle-btn {
+            background-color: #2563eb;
+            color: #ffffff !important;
+        }
+        .toggle-button-group .btn-check:checked + .toggle-btn:hover {
+            background-color: #1d4ed8;
+            color: #ffffff !important;
+        }
+
+        /* Specific styling for the customer selection Select2 to match standard input heights */
+        #customerSelect + .select2-container--default .select2-selection--single {
+            border: 2px solid #cbd5e1 !important;
+            border-radius: 8px !important;
+            height: 38px !important;
+            padding: 0 12px !important;
+            font-weight: 500 !important;
+            color: #1e293b !important;
+            background-color: #ffffff !important;
+            transition: all 0.2s ease-in-out !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+        #customerSelect + .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 34px !important;
+            padding-left: 0 !important;
+            font-size: 0.85rem !important;
+            color: #1e293b !important;
+        }
+        #customerSelect + .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 34px !important;
+            top: 2px !important;
+            right: 8px !important;
+        }
+        #customerSelect + .select2-container--default.select2-container--focus .select2-selection--single {
+            border-color: #2563eb !important;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15) !important;
+        }
+
         /* 💎 PREMIUM MODERN ERP THEME FOR TRANSACTION ENTRY 💎 */
         body {
             background-color: #f8fafc;
@@ -490,155 +600,169 @@
                     </div>
                 </div>
 
-                <div class="d-flex gap-3 align-items-start border-bottom py-3">
-                    {{-- LEFT: Invoice & Customer --}}
-                    <div class="p-3 border rounded-3 minw-350">
-                        <div class="section-title mb-3">Invoice & Customer</div>
-
-                        <div class="mb-2 d-flex align-items-center gap-2">
-                            <label class="form-label fw-bold mb-0">Invoice No.</label>
-                            <input type="text" class="form-control input-readonly" name="Invoice_no" style="width:150px"
-                                value="{{ $nextInvoiceNumber }}" readonly>
-                            <!-- <label class="form-label fw-bold mb-0">M. Inv#</label>
-                            <input type="text" class="form-control" name="Invoice_main" placeholder="Manual invoice"
-                                value="{{ $sale->reference ?? '' }}"> -->
-                        </div>
-
-                        {{-- Credit Days (Optional) --}}
-                        <div class="mb-2 d-flex align-items-center gap-2">
-                            <label class="form-label fw-bold mb-0" style="min-width: 90px;">Credit Days</label>
-                            <input type="number" class="form-control" name="credit_days" placeholder="Optional"
-                                style="width:100px" min="0" value="{{ $sale->credit_days ?? '' }}">
-                            <!-- <small class="text-muted">(Leave empty for no notification)</small> -->
-                        </div>
-
-                        {{-- Type toggle --}}
-                        <div class="mb-2">
-                            <label class="form-label fw-bold mb-1 d-block">Type</label>
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="btn-group" role="group" id="partyTypeGroup">
-                                    <input type="radio" class="btn-check" name="partyType" id="typeCustomers"
-                                        value="Main Customer" checked>
-                                    <label class="btn btn-outline-primary btn-sm" for="typeCustomers">Customers</label>
-
-                                    <input type="radio" class="btn-check" name="partyType" id="typeWalkin"
-                                        value="Walking Customer">
-                                    <label class="btn btn-outline-primary btn-sm" for="typeWalkin">Walk-in</label>
+                <!-- HORIZONTAL TOP PANEL -->
+                <div class="p-3 border rounded-3 bg-white mb-3 shadow-sm">
+                    <div class="row align-items-stretch g-3">
+                        
+                        <!-- LEFT SECTION: Inputs (col-lg-7) -->
+                        <div class="col-lg-7 d-flex flex-column justify-content-between">
+                            <!-- Row 1: Invoice metadata -->
+                            <div class="row g-2 align-items-end mb-2">
+                                <div class="col-sm-3">
+                                    <label class="form-label fw-bold text-secondary mb-1" style="font-size: 0.82rem;">Invoice No.</label>
+                                    <input type="text" class="form-control input-readonly" name="Invoice_no"
+                                        value="{{ $nextInvoiceNumber }}" readonly style="height: 38px !important;">
                                 </div>
-                                <button type="button" class="mb-2 btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#addCustomerModal" title="Add New Customer">
-                                    <i class="fas fa-plus"></i> Add
-                                </button>
+                                <div class="col-sm-3">
+                                    <label class="form-label fw-bold text-secondary mb-1" style="font-size: 0.82rem;">Credit Days</label>
+                                    <input type="number" class="form-control" name="credit_days" placeholder="Days"
+                                        min="0" value="{{ $sale->credit_days ?? '' }}" style="height: 38px !important;">
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label class="form-label fw-bold text-secondary mb-0" style="font-size: 0.82rem;">Type</label>
+                                        <button type="button" class="btn btn-outline-success py-0 px-2" data-bs-toggle="modal" data-bs-target="#addCustomerModal" title="Add New Customer" style="font-size: 0.75rem; height: 22px; line-height: 20px;">
+                                            <i class="fas fa-plus"></i> Add Customer
+                                        </button>
+                                    </div>
+                                    <div class="toggle-button-group w-100" id="partyTypeGroup">
+                                        <input type="radio" class="btn-check" name="partyType" id="typeCustomers" value="Main Customer" checked>
+                                        <label class="toggle-btn" for="typeCustomers">Customers</label>
+                                        
+                                        <input type="radio" class="btn-check" name="partyType" id="typeWalkin" value="Walking Customer">
+                                        <label class="toggle-btn" for="typeWalkin">Walk-in</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Row 2: Customer selection, Remarks, Date -->
+                            <div class="row g-2 align-items-end">
+                                <div class="col-sm-5">
+                                    <label class="form-label fw-bold text-secondary mb-1" style="font-size: 0.82rem;">Customer:</label>
+                                    <select class="form-select" id="customerSelect" name="customer" style="width:100%">
+                                        <option value=""></option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-4">
+                                    <label class="form-label fw-bold text-secondary mb-1" style="font-size: 0.82rem;">Remarks (Optional):</label>
+                                    <input type="text" class="form-control" name="reference" id="remarks" placeholder="Enter remarks..." style="height: 38px !important;">
+                                </div>
+                                <div class="col-sm-3">
+                                    <label class="form-label fw-bold text-secondary mb-1" style="font-size: 0.82rem;">Date:</label>
+                                    <input type="text" class="form-control" id="displayDateInput" value="{{ date('d/m/Y') }}" readonly style="background-color: #ffffff; cursor: default; height: 38px !important;">
+                                </div>
                             </div>
                         </div>
 
-                        <!-- CUSTOMER SELECT (Select2 Search) -->
-                        <div class="mb-2">
-                            <label class="form-label fw-bold mb-1">Select Customer</label>
-                            <select class="form-select" id="customerSelect" name="customer" style="width:100%">
-                                <option value=""></option>
-                            </select>
-                            <small class="text-muted" id="customerCountHint"></small>
-                        </div>
+                        <!-- RIGHT SECTION: Premium Horizontal Dark Customer Card Column (col-lg-5) -->
+                        <div class="col-lg-5 d-flex flex-column justify-content-center">
+                            <div class="customer-card-premium p-3" style="min-height: 106px;">
+                                <!-- Top Row: Customer Name and Clear Link -->
+                                <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom: 1px solid #374151;">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-user-circle text-primary me-2" style="font-size: 1.1rem; color: #a78bfa !important;"></i>
+                                        <span class="fw-bold text-white text-truncate" id="cc_customer_name" style="max-width: 260px; font-size: 0.95rem;">Select Customer</span>
+                                    </div>
+                                    <button id="clearCustomerData" type="button" class="btn btn-link text-secondary p-0 text-decoration-none" style="font-size: 0.75rem; color: #9ca3af !important; transition: color 0.2s;" onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='#9ca3af'">
+                                        <i class="fas fa-times-circle me-1"></i>Clear
+                                    </button>
+                                </div>
+                                
+                                <!-- Bottom Row: Financial metrics -->
+                                <div class="d-flex align-items-center justify-content-between text-center w-100">
+                                    <!-- Column 1: PREVIOUS BALANCE -->
+                                    <div style="flex: 1; border-right: 1px solid #374151; min-width: 0; padding: 0 4px;">
+                                        <div class="col-title text-center text-truncate">
+                                            <i class="fas fa-history"></i> Prev Bal
+                                        </div>
+                                        <div class="text-center text-truncate">
+                                            <span class="col-value text-danger" id="cc_prev_bal_val">Rs 0</span>
+                                            <span class="col-value-sub text-danger" id="cc_prev_bal_suffix">Dr</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Column 2: CURRENT BILL -->
+                                    <div style="flex: 1; border-right: 1px solid #374151; min-width: 0; padding: 0 4px;">
+                                        <div class="col-title text-center text-truncate">
+                                            <i class="far fa-file-alt"></i> Current
+                                        </div>
+                                        <div class="col-value text-white text-center text-truncate" id="cc_current_bill">
+                                            Rs 0
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Column 3: PAID NOW -->
+                                    <div style="flex: 1; border-right: 1px solid #374151; min-width: 0; padding: 0 4px;">
+                                        <div class="col-title text-center text-truncate" style="color: #10B981 !important;">
+                                            <i class="fas fa-check-square"></i> Paid
+                                        </div>
+                                        <div class="col-value text-success text-center text-truncate" id="cc_paid_now">
+                                            Rs 0
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Column 4: CLOSING BALANCE -->
+                                    <div style="flex: 1; min-width: 0; padding: 0 4px;">
+                                        <div class="col-title text-center text-truncate" style="color: #f87171 !important;">
+                                            <i class="fas fa-dot-circle"></i> Closing
+                                        </div>
+                                        <div class="text-center text-truncate">
+                                            <span class="col-value text-danger" id="cc_closing_bal_val">Rs 0</span>
+                                            <span class="col-value-sub text-danger" id="cc_closing_bal_suffix">Dr</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        
+                    </div>
+                </div>
 
-                        <!-- CUSTOMER INFO CARD -->
-                        <div id="customerInfoCard" class="mb-2 p-2 border rounded-2 bg-light d-none">
-                            <table class="table table-sm table-borderless mb-0" style="font-size:0.82rem">
-                                <tr>
-                                    <td class="fw-bold text-muted py-0" style="width:90px">Code</td>
-                                    <td class="py-0" id="ci_code">—</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold text-muted py-0">Name</td>
-                                    <td class="py-0" id="ci_name">—</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold text-muted py-0">Mobile</td>
-                                    <td class="py-0" id="ci_mobile">—</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold text-muted py-0">Address</td>
-                                    <td class="py-0" id="ci_address">—</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold text-danger py-0">Prev. Bal</td>
-                                    <td class="py-0 text-danger fw-bold" id="ci_prev_bal">0.00</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold text-muted py-0">Credit Limit</td>
-                                    <td class="py-0" id="ci_range_bal">0.00</td>
-                                </tr>
-                            </table>
-                        </div>
+                {{-- Hidden fields for backend --}}
+                <input type="hidden" id="address" name="address">
+                <input type="hidden" id="tel" name="tel">
+                <input type="hidden" id="previousBalance" value="0">
+                <input type="hidden" id="rangeBalance" value="0">
 
-                        <!-- SALES OFFICER -->
-                        <!-- <div class="mb-2">
-                            <label class="form-label fw-bold mb-1">Sales Officer</label>
-                            <select class="form-select" id="salesOfficerSelect" name="sales_officer_id">
-                                <option value="">-- Select Officer --</option>
-                                @foreach(\App\Models\SalesOfficer::orderBy('name')->get() as $officer)
-                                    <option value="{{ $officer->id }}">{{ $officer->name }}</option>
-                                @endforeach
-                            </select>
-                        </div> -->
-
-                        <div class="mb-2">
-                            <label class="form-label fw-bold">M.Bill</label>
-                            <textarea class="form-control" name="reference" id="remarks"></textarea>
-                        </div>
-
-                        {{-- Hidden fields for backend --}}
-                        <input type="hidden" id="address" name="address">
-                        <input type="hidden" id="tel" name="tel">
-                        <input type="hidden" id="previousBalance" value="0">
-                        <input type="hidden" id="rangeBalance" value="0">
-
-                        <div class="text-end mt-3">
-                            <button id="clearCustomerData" type="button" class="btn btn-sm btn-secondary">Clear</button>
+                <!-- Items Section full width -->
+                <div class="p-3 border rounded-3 bg-white shadow-sm mt-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="section-title mb-0">Items</div>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#quickAddProductModal">
+                                <i class="fas fa-plus me-1"></i>Quick Add Product
+                            </button>
+                            <button type="button" class="btn btn-sm btn-primary" id="btnAdd">Add Row</button>
                         </div>
                     </div>
 
-                    {{-- RIGHT: Items --}}
-                    <div class="flex-grow-1" style="min-width: 0;"> <!-- Fix flex overflow -->
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div class="section-title mb-0">Items</div>
-                            <div class="d-flex gap-2">
-                                <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#quickAddProductModal">
-                                    <i class="fas fa-plus me-1"></i>Quick Add Product
-                                </button>
-                                <button type="button" class="btn btn-sm btn-primary" id="btnAdd">Add Row</button>
-                            </div>
-                        </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered sales-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="col-product">Product</th>
+                                    <th class="col-stock">Stock</th>
+                                    <th style="width:65px;min-width:65px;">Carton</th>
+                                    <th style="width:70px;min-width:70px;">Loose Pcs</th>
+                                    <th class="col-qty pack-size-col" title="Pieces per Carton">Pcs/Ctn</th>
+                                    <th class="col-pieces boxes-col">Total Pcs</th>
+                                    <th class="col-price-p price-pc-header">Retail Price</th>
+                                    <th class="col-disc">Disc %</th>
+                                    <th class="col-disc-amt">Disc Amt</th>
+                                    <th class="col-amount">Amount</th>
+                                    <th class="col-action">—</th>
+                                </tr>
+                            </thead>
+                            <tbody id="salesTableBody">
 
-                        <div class="table-responsive">
-                            <table class="table table-bordered sales-table mb-0">
-
-                                <thead>
-                                    <tr>
-                                        <th class="col-product">Product</th>
-                                        <th class="col-stock">Stock</th>
-                                        <th style="width:65px;min-width:65px;">Carton</th>
-                                        <th style="width:70px;min-width:70px;">Loose Pcs</th>
-                                        <th class="col-qty pack-size-col" title="Pieces per Carton">Pcs/Ctn</th>
-                                        <th class="col-pieces boxes-col">Total Pcs</th>
-                                        <th class="col-price-p price-pc-header">Retail Price</th>
-                                        <th class="col-disc">Disc %</th>
-                                        <th class="col-disc-amt">Disc Amt</th>
-                                        <th class="col-amount">Amount</th>
-                                        <th class="col-action">—</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="salesTableBody">
-
-                                </tbody>
-                                <tfoot>
-                                    <tr>
-                                        <td colspan="9" class="text-end fw-bold">Total:</td>
-                                        <td class="text-end fw-bold"><span id="totalAmount">0.00</span></td>
-                                        <td></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="9" class="text-end fw-bold">Total:</td>
+                                    <td class="text-end fw-bold"><span id="totalAmount">0.00</span></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
                     </div>
                 </div>
 
