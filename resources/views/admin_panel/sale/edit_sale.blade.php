@@ -632,7 +632,7 @@
                             <!-- Row 2: Customer selection, Remarks, Date -->
                             <div class="row g-2 align-items-end">
                                 <div class="col-sm-4">
-                                    <label class="form-label fw-bold text-secondary mb-1" style="font-size: 0.82rem;">Remarks (Optional):</label>
+                                    <label class="form-label fw-bold text-secondary mb-1" style="font-size: 0.82rem;">M.Bill (Optional):</label>
                                     <input type="text" class="form-control" name="reference" id="remarks" placeholder="Enter remarks..." style="height: 38px !important;" value="{{ $sale->reference ?? '' }}">
                                 </div>
                                 <div class="col-sm-3">

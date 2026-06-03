@@ -377,7 +377,7 @@
                             </div>
 
                             <div class="mb-2">
-                                <label class="form-label fw-bold text-muted small">Remarks</label>
+                                <label class="form-label fw-bold text-muted small">M.Bill</label>
                                 <textarea class="form-control" name="note" rows="2">{{ $purchase->note }}</textarea>
                             </div>
 
