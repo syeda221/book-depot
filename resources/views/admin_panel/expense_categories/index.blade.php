@@ -21,7 +21,7 @@
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h3 class="fw-bold" style="color: #0b5a2b;">Expense Categories</h3>
                             @can('expense.voucher.create')
-                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal"
+                                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal"
                                     id="reset">
                                     <i class="bi bi-plus-lg me-1"></i> Create Category
                                 </button>
@@ -78,7 +78,9 @@
             <div class="modal-content">
                 <div class="modal-header bg-dark text-white">
                     <h5 class="modal-title fw-bold" id="exampleModalLabel">Add Expense Category</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
                 <div class="modal-body">
                     <form class="myform" action="{{ route('expense_categories.store') }}" method="POST">
@@ -98,7 +100,7 @@
                         </div>
                 </div>
                 <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                     @can('expense.voucher.create')
                         <button type="submit" class="btn btn-primary save-btn">Save Changes</button>
                     @endcan
@@ -119,6 +121,13 @@
     <script src="{{ asset('assets/js/mycode.js') }}"></script>
 
     <script>
+        // Fix ARIA focus warning on modal close
+        $('.modal').on('hide.bs.modal', function () {
+            if (document.activeElement) {
+                document.activeElement.blur();
+            }
+        });
+
         $(document).on('submit', '.myform', function(e) {
             e.preventDefault();
             var formdata = new FormData(this);
