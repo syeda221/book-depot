@@ -59,6 +59,14 @@ class VendorController extends Controller
             }
         }
 
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'vendor' => $vendor ?? Vendor::find($request->id),
+                'message' => 'Saved Successfully'
+            ]);
+        }
+
         return back()->with('success', 'Saved Successfully');
     }
 

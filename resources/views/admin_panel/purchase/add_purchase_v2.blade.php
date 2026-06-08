@@ -863,15 +863,14 @@
                     success: function(response) {
                         $btn.prop('disabled', false).text(originalText);
                         
-                        // We assume the backend might not return the full vendor object directly in a predictable format
-                        // So reload the page is safest, OR if we can parse the name, we just do that.
-                        // Actually VendorController->store returns back()->with('success', ...) 
-                        // So it sends HTML of the previous page! Let's handle this carefully.
-                        // Wait, if it's returning a redirect, ajax will silently follow it and return HTML.
-                        // The safest logic here for a standard Laravel controller returning back() is to reload the window.
-                        // Or we can manually reload. 
+                        let vendorId = null;
+                        let vendorName = $('#quickAddVendorForm input[name="name"]').val();
                         
-                        // For a seamless experience, we just reload window because appending HTML block is messy
+                        if (response.vendor && response.vendor.id) {
+                            vendorId = response.vendor.id;
+                            vendorName = response.vendor.name;
+                        }
+
                         Swal.fire({
                             icon: 'success',
                             title: 'Vendor Added',
@@ -879,7 +878,15 @@
                             timer: 1500,
                             showConfirmButton: false
                         }).then(() => {
-                            window.location.reload();
+                            $('#addVendorModal').modal('hide');
+                            $('#quickAddVendorForm')[0].reset();
+                            
+                            if (vendorId) {
+                                let newOption = new Option(vendorName, vendorId, false, true);
+                                $('#vendorSelect').append(newOption).trigger('change');
+                            } else {
+                                window.location.reload();
+                            }
                         });
                     },
                     error: function(xhr) {
