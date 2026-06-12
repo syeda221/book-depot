@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Payment Voucher - Yasir Pipe</title>
+    <title>Payment Voucher - Farhan Book Depot</title>
      <link rel="stylesheet" href="{{ asset('assets/fonts/poppins/poppins.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/vendors/font-awesome/css/all.min.css') }}">
 
@@ -204,7 +204,7 @@
 
         {{-- ── HEADER ── --}}
         <div class="vch-header">
-            <h1>Yasir Pipe</h1>
+            <h1>Farhan Book Depot</h1>
             <span class="vch-badge">PAYMENT VOUCHER</span>
         </div>
         <hr class="sep">
