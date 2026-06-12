@@ -15,15 +15,9 @@ class CategorySeeder extends Seeder
     public function run(): void
     {
         $data = [
-            'Electronics' => ['Fan', 'ceiling  Fan','Pedestal  Fan' , 'Fridge', 'Air-Condition(AC)', 'Washing Machine', 'Microwave Oven'],
-            'machine' => ['Drill Machine', 'Grinder', 'Lathe Machine', 'Milling Machine', 'Shaper Machine'],
-            'Tools' => ['Hammer', 'Screwdriver', 'Wrench', 'Pliers', 'Tape Measure'],
-            'Plumbing' => ['Pipe', 'Faucet', 'Valve', 'Toilet', 'Sink'],
-            'Hardware' => ['Nails', 'Screws', 'Bolts', 'Hinges', 'Brackets'],
-            'Electrical' => ['Light', 'Switch', 'Wire', 'Cable'],
-            'Automotive' => ['Engine Oil', 'Brake Pads', 'Tires', 'Batteries', 'Filters'],
-
-
+            'Books' => ['Fiction', 'Non-Fiction', 'Academic', 'Children'],
+            'Stationery' => ['Pens', 'Pencils', 'Notebooks', 'Erasers', 'Rulers'],
+            'Bags' => ['School Bags', 'College Bags', 'Backpacks'],
         ];
 
         foreach ($data as $categoryName => $subcategories) {

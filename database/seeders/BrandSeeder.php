@@ -14,7 +14,7 @@ class BrandSeeder extends Seeder
     public function run(): void
     {
         //
-         $brands = ['Pak Fan', 'Super Asia', 'Hier', 'Downlance ', 'Gree'];
+         $brands = ['Oxford', 'Cambridge', 'Dollar', 'Piano', 'Pelikan', 'Deer'];
           foreach ($brands as $brand) {
             Brand::firstOrCreate(['name' => $brand ]);
         }

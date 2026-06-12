@@ -17,14 +17,14 @@ class ProductSeeder extends Seeder
     public function run(): void
     {
         // Sample category
-        $category = Category::firstOrCreate(['name' => 'Electronics']);
+        $category = Category::firstOrCreate(['name' => 'Books']);
         $subCategory = Subcategory::firstOrCreate([
             'category_id' => $category->id,
-            'name' => 'Air-Condition(AC)',
+            'name' => 'Academic',
         ]);
 
         $unit = Unit::firstOrCreate(['name' => 'Piece']);
-        $brand = Brand::firstOrCreate(['name' => 'Samsung']); // brand add
+        $brand = Brand::firstOrCreate(['name' => 'Oxford']); // brand add
 
         // 🔁 Auto-generate item code
         $lastId = Product::max('id') ?? 0;
@@ -42,7 +42,7 @@ class ProductSeeder extends Seeder
             'is_assembled' => 0,
             'item_code' => $itemCode,
             'unit_id' => $unit->id,
-            'item_name' => 'Formal Shirt',
+            'item_name' => 'Oxford English Dictionary',
             'color' => json_encode(['Black']),
             // 'price' removed, using specific fields
             'sale_price_per_box' => 5000,

@@ -227,7 +227,7 @@
         <!-- Company Header -->
         <div class="company-info">
             <!-- year dynamic -->
-            <div class="company-name">  Yasir Pipe - <span>{{ date('Y') }}</span></div>
+            <div class="company-name"> Farhan Book Depot - <span>{{ date('Y') }}</span></div>
             <div style="font-size: 12px;">Gulshan-e-Ilahi, Hyderabad.</div>
         </div>
 
