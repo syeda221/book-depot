@@ -39,7 +39,6 @@ class ProductImportExportController extends Controller
                 '',             // model
                 'by_cartons',   // size_mode: by_cartons OR by_pieces
                 '12',           // pcs_per_carton
-                '0',            // stock_total_pieces
                 '500',          // sale_price_per_piece
                 '300',          // purchase_price_per_piece
                 '0',            // sale_discount_percent
@@ -69,9 +68,7 @@ class ProductImportExportController extends Controller
             'category_relation',
             'sub_category_relation',
             'brand',
-            'warehouseStocks',
-        ])->withSum('warehouseStocks', 'total_pieces')
-          ->orderBy('id')
+        ])->orderBy('id')
           ->get();
 
         $headers = $this->csvHeaders();
@@ -82,7 +79,6 @@ class ProductImportExportController extends Controller
             fputcsv($handle, $headers);
 
             foreach ($products as $p) {
-                $totalPieces = (int) ($p->warehouse_stocks_sum_total_pieces ?? 0);
                 $sizeMode    = $p->size_mode ?? 'by_cartons';
 
                 fputcsv($handle, [
@@ -96,7 +92,6 @@ class ProductImportExportController extends Controller
                     $p->model,
                     $sizeMode,
                     $p->pieces_per_box ?? 1,
-                    $totalPieces,
                     round($p->sale_price_per_piece ?? 0, 2),
                     round($p->purchase_price_per_piece ?? 0, 2),
                     $p->sale_discount_percent ?? 0,
@@ -215,7 +210,6 @@ class ProductImportExportController extends Controller
 
             // Numeric fields with safe defaults
             $pcsPerCarton       = max(1, (int) $get($row, 'pcs_per_carton', 1));
-            $stockTotalPieces   = max(0, (int) $get($row, 'stock_total_pieces', 0));
             $salePricePerPiece  = max(0, (float) $get($row, 'sale_price_per_piece', 0));
             $purchPricePerPiece = max(0, (float) $get($row, 'purchase_price_per_piece', 0));
             $saleDisc           = max(0, (float) $get($row, 'sale_discount_%', 0));
@@ -246,7 +240,7 @@ class ProductImportExportController extends Controller
             try {
                 DB::transaction(function () use (
                     $product, $itemName, $barcode, $itemCode, $sizeMode,
-                    $pcsPerCarton, $stockTotalPieces, $salePricePerPiece,
+                    $pcsPerCarton, $salePricePerPiece,
                     $purchPricePerPiece, $salePricePerBox, $purchPricePerBox,
                     $saleDisc, $purchDisc, $alertQty, $isActive,
                     $categoryId, $subCategoryId, $brandId,
@@ -282,41 +276,6 @@ class ProductImportExportController extends Controller
                         // ── UPDATE existing product ──
                         $product->update($productData);
 
-                        // Stock adjustment
-                        $ws = WarehouseStock::where('product_id', $product->id)
-                            ->where('warehouse_id', 1)
-                            ->first();
-
-                        $currentPieces = $ws ? (int) $ws->total_pieces : 0;
-                        $diff          = $stockTotalPieces - $currentPieces;
-
-                        if ($diff !== 0) {
-                            if ($ws) {
-                                $ws->total_pieces = $stockTotalPieces;
-                                $ws->quantity     = $sizeMode === 'by_cartons' && $pcsPerCarton > 0
-                                    ? floor($stockTotalPieces / $pcsPerCarton)
-                                    : $stockTotalPieces;
-                                $ws->save();
-                            } else {
-                                WarehouseStock::create([
-                                    'warehouse_id' => 1,
-                                    'product_id'   => $product->id,
-                                    'quantity'     => floor($stockTotalPieces / max(1, $pcsPerCarton)),
-                                    'total_pieces' => $stockTotalPieces,
-                                    'remarks'      => 'Import adjustment',
-                                ]);
-                            }
-
-                            // Log stock movement
-                            StockMovement::create([
-                                'product_id' => $product->id,
-                                'type'       => 'adjustment',
-                                'qty'        => $diff,
-                                'ref_type'   => 'IMPORT',
-                                'note'       => 'Stock adjusted via CSV import',
-                            ]);
-                        }
-
                         $updated++;
 
                     } else {
@@ -337,23 +296,10 @@ class ProductImportExportController extends Controller
                         WarehouseStock::create([
                             'warehouse_id' => 1,
                             'product_id'   => $newProduct->id,
-                            'quantity'     => $sizeMode === 'by_cartons' && $pcsPerCarton > 0
-                                ? floor($stockTotalPieces / $pcsPerCarton)
-                                : $stockTotalPieces,
-                            'total_pieces' => $stockTotalPieces,
+                            'quantity'     => 0,
+                            'total_pieces' => 0,
                             'remarks'      => 'Initial Stock via Import',
                         ]);
-
-                        // Log stock movement
-                        if ($stockTotalPieces > 0) {
-                            StockMovement::create([
-                                'product_id' => $newProduct->id,
-                                'type'       => 'adjustment',
-                                'qty'        => $stockTotalPieces,
-                                'ref_type'   => 'IMPORT',
-                                'note'       => 'Initial Stock via CSV import',
-                            ]);
-                        }
 
                         $created++;
                     }
@@ -392,7 +338,6 @@ class ProductImportExportController extends Controller
             'model',
             'size_mode',
             'pcs_per_carton',
-            'stock_total_pieces',
             'sale_price_per_piece',
             'purchase_price_per_piece',
             'sale_discount_%',
